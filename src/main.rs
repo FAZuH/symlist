@@ -24,11 +24,10 @@ fn main() -> Result<()> {
         bail!("config file {link_conf:?} does not exist")
     }
 
-    let parser = SymlinkParser::new(File::open(link_conf)?)?;
+    let parser = LinkConfParser::new(File::open(link_conf)?);
 
-    let symlinks: Vec<_> = parser.into_iter().collect();
-    for link in symlinks {
-        let SymlinkConf { original, link } = link?;
+    for link in parser {
+        let LinkConf { original, link } = link?;
 
         let res = match cli.command {
             Command::Symlink => symlink(original, link),
@@ -45,17 +44,17 @@ fn main() -> Result<()> {
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
-pub struct Cli {
+struct Cli {
     #[command(subcommand)]
-    pub command: Command,
+    command: Command,
 
     /// Path to symlink configurations. By default looks for `symlink.lst` in cwd.
     #[arg(short, long, global = true)]
-    pub link_conf: Option<PathBuf>,
+    link_conf: Option<PathBuf>,
 }
 
 #[derive(Subcommand)]
-pub enum Command {
+enum Command {
     /// Create symlinks of all entries at LINK_CONF
     Symlink,
     /// Unlink all entries at LINK_CONF
@@ -110,27 +109,27 @@ fn default_link_conf() -> Result<PathBuf> {
     Ok(cwd.join("symlink.lst"))
 }
 
-pub struct SymlinkConf {
-    pub original: PathBuf,
-    pub link: PathBuf,
+struct LinkConf {
+    original: PathBuf,
+    link: PathBuf,
 }
 
-pub struct SymlinkParser {
+struct LinkConfParser {
     reader: BufReader<File>,
     line_no: usize,
 }
 
-impl SymlinkParser {
-    pub fn new(file: impl Into<File>) -> Result<Self> {
-        Ok(Self {
+impl LinkConfParser {
+    fn new(file: impl Into<File>) -> Self {
+        Self {
             reader: BufReader::new(file.into()),
             line_no: 0,
-        })
+        }
     }
 }
 
-impl Iterator for SymlinkParser {
-    type Item = Result<SymlinkConf>;
+impl Iterator for LinkConfParser {
+    type Item = Result<LinkConf>;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.line_no += 1;
@@ -164,7 +163,7 @@ impl Iterator for SymlinkParser {
         let original = PathBuf::from(paths.first().unwrap());
         let link = PathBuf::from(paths.get(1).unwrap());
 
-        Some(Ok(SymlinkConf { original, link }))
+        Some(Ok(LinkConf { original, link }))
     }
 }
 
@@ -195,12 +194,12 @@ mod test {
     }
 
     #[test]
-    fn symlink_parser() {
+    fn linkconf_parser() {
         let dir = tempfile::tempdir().unwrap();
         let conf = dir.path().join("symlink.lst");
         writeln!(File::create(&conf).unwrap(), "# foobar\n\nfoo:bar").unwrap();
 
-        let mut parser = SymlinkParser::new(File::open(&conf).unwrap()).unwrap();
+        let mut parser = LinkConfParser::new(File::open(&conf).unwrap());
         let conf = parser.next().unwrap().unwrap();
 
         assert_eq!(conf.original, PathBuf::from("foo"));
@@ -305,12 +304,12 @@ mod test {
         let dir = tempfile::tempdir().unwrap();
         let conf1 = dir.path().join("symlink1.lst");
         writeln!(File::create(&conf1).unwrap(), "invalid_line_no_colon").unwrap();
-        let mut parser = SymlinkParser::new(File::open(&conf1).unwrap()).unwrap();
+        let mut parser = LinkConfParser::new(File::open(&conf1).unwrap());
         assert!(parser.next().unwrap().is_err());
 
         let conf2 = dir.path().join("symlink2.lst");
         writeln!(File::create(&conf2).unwrap(), "foo:bar:baz").unwrap();
-        let mut parser2 = SymlinkParser::new(File::open(&conf2).unwrap()).unwrap();
+        let mut parser2 = LinkConfParser::new(File::open(&conf2).unwrap());
         assert!(parser2.next().unwrap().is_err());
     }
 
@@ -320,7 +319,7 @@ mod test {
         let conf = dir.path().join("symlink.lst");
         writeln!(File::create(&conf).unwrap(), "foo bar:baz/qux.txt").unwrap();
 
-        let mut parser = SymlinkParser::new(File::open(&conf).unwrap()).unwrap();
+        let mut parser = LinkConfParser::new(File::open(&conf).unwrap());
         let conf = parser.next().unwrap().unwrap();
         assert_eq!(conf.original, PathBuf::from("foo bar"));
         assert_eq!(conf.link, PathBuf::from("baz/qux.txt"));
@@ -336,7 +335,7 @@ mod test {
         )
         .unwrap();
 
-        let mut parser = SymlinkParser::new(File::open(&conf).unwrap()).unwrap();
+        let mut parser = LinkConfParser::new(File::open(&conf).unwrap());
         assert!(parser.next().is_none());
     }
 
