@@ -3,7 +3,6 @@ use std::io::BufRead;
 use std::io::BufReader;
 use std::path::PathBuf;
 
-use clap::CommandFactory;
 use clap::Parser;
 use clap::Subcommand;
 use color_eyre::Result;
@@ -13,7 +12,6 @@ use color_eyre::eyre::eyre;
 
 fn main() -> Result<()> {
     color_eyre::install()?;
-    clap_complete::CompleteEnv::with_factory(Cli::command).complete();
 
     let cli = Cli::parse();
 
