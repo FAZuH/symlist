@@ -51,6 +51,7 @@ pub struct Cli {
     #[command(subcommand)]
     pub command: Command,
 
+    /// Path to symlink configurations. By default looks for `symlink.lst` in cwd.
     #[arg(short, long, global = true)]
     pub link_conf: Option<PathBuf>,
 }
