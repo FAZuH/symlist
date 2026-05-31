@@ -13,6 +13,8 @@ cargo install --git https://github.com/fazuh/symlist
 cargo install --path .
 ```
 
+Or download the pre-compiled binary at https://github.com/FAZuH/symlist/releases
+
 ## Configuration
 
 By default, the tool looks for a `symlink.lst` file in the current working directory. The file should contain one entry per line, using the format `original_path:symlink_path`. Empty lines and lines starting with `#` are ignored.
