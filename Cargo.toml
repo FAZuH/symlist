@@ -12,7 +12,7 @@ authors = ["FAZuH <mail@fazuh.com>"]
 description = "Simple CLI to manage and sync a list of symbolic links"
 license = "MIT"
 repository = "https://github.com/FAZuH/symlist"
-keywords = ["symlink", "symbolic-link", "dotfiles", "filesystem", "sync", "cli"]
+keywords = ["symlink", "symbolic-link", "dotfiles", "filesystem", "cli"]
 categories = ["command-line-utilities", "filesystem"]
 
 [dependencies]
