@@ -7,9 +7,13 @@ Simple command-line tool to manage and sync a list of symbolic links. It reads a
 You can build and install the tool using Cargo:
 
 ```bash
+# Install latest versoin from crates.io
+cargo install symlist
+
+# Install directly from git
 cargo install --git https://github.com/fazuh/symlist
 
-# Or from project root
+# Or build directly from project root
 cargo install --path .
 ```
 
